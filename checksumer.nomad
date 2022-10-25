@@ -1,4 +1,4 @@
-job "checksumer_test_v4" {
+job "checksumer" {
 
   namespace   = "default"
 
@@ -11,28 +11,33 @@ job "checksumer_test_v4" {
     volume "home" {
       type      = "host"
       read_only = true
-      source    = "local_home"
+      source    = "local_home"  # name of a export shared from the underlying node
     }
 
     task "checksum_generation" {
       driver = "exec"
-      user = "jm442"
+      # the user needs to be a local system user. if it's not a local user e.g. an AD user
+      # you need to replace this with the UUID. Either way the user needs access to the 
+      # data you want to scan.
+      user = "joe" 
 
       resources {
         cores = "1"
-        memory = "1024"
+        memory = "2048"
       }
       volume_mount {
         volume      = "home"
         destination = "/home"
         read_only   = true
       }
+      artifact {
+        source = "https://github.com/jfmcdonald/checksumer/releases/download/v0.1/checksumer"
+        destination = "local/"
+      }
 
       config {
-        #command = "/home/jm442/bin/checksumer"
-        #args    = ["/home/jm442/"]
-	command = "bash"
-	args    = ["-c", "/home/jm442/bin/checksumer", "/home/jm442"]
+        command = "local/checksumer"
+        args    = ["/home/joe/"]   # directory you want to scan
       }
     }
   }
